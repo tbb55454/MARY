@@ -1,0 +1,26 @@
+name: macOS build
+
+on: [push, pull_request]
+
+jobs:
+  build_appleclang:
+    name: AppleClang [macOS]
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - name: install dependencies
+      run: |
+        set +e
+        brew update
+        brew install cmake
+        brew install libomp
+        brew install boost
+        set -e
+    - name: build
+      run: |
+        mkdir build && cd build
+        cmake ..
+        make -j 2 VERBOSE=ON
+
