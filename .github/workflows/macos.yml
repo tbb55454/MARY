@@ -1,0 +1,34 @@
+name: macOS build
+
+on: [push, pull_request]
+
+jobs:
+  build_appleclang:
+    name: AppleClang [macOS]
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - name: install dependencies
+      run: |
+        set +e
+        brew update
+        brew install cmake
+        brew install libomp
+        brew install boost
+        set -e
+    - name: build
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_INSTALL_PREFIX=/Users/runner/work/hipSYCL/hipSYCL/build/install
+        make -j 2 install VERBOSE=ON
+    - name: build CPU tests
+      run: |
+        mkdir build/tests-cpu && cd build/tests-cpu
+        cmake -DHIPSYCL_TARGETS=omp -DhipSYCL_DIR=/Users/runner/work/hipSYCL/hipSYCL/build/install/lib/cmake/hipSYCL /Users/runner/work/hipSYCL/hipSYCL/tests
+        make -j 2 VERBOSE=ON
+    - name: run CPU tests
+      run: |
+        cd /Users/runner/work/hipSYCL/hipSYCL/build/tests-cpu
+        LD_LIBRARY_PATH=/Users/runner/work/hipSYCL/hipSYCL/build/install/lib ./sycl_tests
